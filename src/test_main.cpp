@@ -4,6 +4,7 @@
 #include "simulation.h"
 
 RandomNumbers *_RNG = new RandomNumbers(101301091);
+
 Network net;
 Neuron n1, n2;
 size_t nlinks = 1000;
@@ -52,7 +53,7 @@ TEST(networkTest, initialize) {
     std::vector<double> allv(net.recoveries());
     for (auto I : allv) {
         mean += 0.001*I;
-        sdv  += 0.001*I*I;
+        sdv  += 0.001*I*I;        
     }
     sdv -= mean*mean;
     sdv = std::sqrt(3*sdv);
@@ -78,7 +79,7 @@ TEST(networkTest, connect) {
     for (size_t inhib_idx=0; inhib_idx<net.size() && nlink>0; inhib_idx++) 
         if ((net.neuron(inhib_idx).is_inhibitory())
             && net.add_link(excit_idx, inhib_idx, stren))
-            nlink--;
+            nlink--;      
     EXPECT_EQ(expec, net.degree(excit_idx));
     std::vector<double> noisev(nlinks, noise);
     size_t inhib1 = net.neighbors(excit_idx).front().first;

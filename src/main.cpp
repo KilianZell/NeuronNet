@@ -23,6 +23,9 @@
 RandomNumbers *_RNG;
 
 int main(int argc, char **argv) {
+	std::cout << std::endl;
+	std::cout << "Program running, please wait approximately 20 seconds. Thank you ! " << std::endl;
+	std::cout << std::endl;
     _RNG = new RandomNumbers;
     try {
         Simulation Sim(argc, argv);
@@ -34,5 +37,7 @@ int main(int argc, char **argv) {
         return e.value();
     }
     if (_RNG) delete _RNG;
+    std::cout << "Done ! " << std::endl;
+	std::cout << std::endl;
     return 0;
 }

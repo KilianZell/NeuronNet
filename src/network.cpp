@@ -1,6 +1,56 @@
 #include "network.h"
 #include "random.h"
 
+std::pair<size_t, double> Network::degree(const size_t& n) const {
+	double intensity_tot(0);
+	int n_links(0);
+	for(linkmap::const_iterator itr = links.lower_bound({n,0}); 
+		((itr->first).first == n) and (itr != links.end()); ++itr) {
+			intensity_tot += itr->second;
+			++n_links;
+	}
+	std::pair<size_t, double>degree_ = (std::make_pair(n_links, intensity_tot));
+	return degree_;
+}
+
+std::vector<std::pair<size_t, double> >Network::neighbors(const size_t& i) const {
+	std::vector<std::pair<size_t, double> > neighbors_;
+	for(linkmap::const_iterator itr = links.lower_bound({i,0}); 
+		((itr->first).first == i) and (itr != links.end()); ++itr) {
+			neighbors_.push_back(std::make_pair((itr->first).second, itr->second));
+	}
+	return neighbors_;
+}
+
+std::set<size_t> Network::step(const std::vector<double>& thal_) {
+  std::set<size_t> firing_indices;
+  double intensity(0);
+  for (size_t i = 0; i < size(); i++) {
+	Neuron& neuron_ = neurons[i];
+	if (neuron_.firing()) {
+		std::vector<std::pair<size_t, double> > neighbors_ = neighbors(i);
+			if(neuron_.is_inhibitory()) {
+				for(auto neighbor_ : neighbors_) {
+					intensity += neighbor_.second;
+				}
+			} else {
+				for(auto neighbor_ : neighbors_) {
+					intensity += 0.5*neighbor_.second;
+				}
+			}
+		neuron_.reset();
+	}
+    double w(1);
+    if(neuron_.is_inhibitory()) {w = 0.4;}
+    neuron_.input(w*thal_[i] + intensity);
+    neuron_.step();   
+    if (neuron_.firing()) {
+		firing_indices.insert(i);
+    }
+  } 
+  return firing_indices;
+}
+
 void Network::resize(const size_t &n, double inhib) {
     size_t old = size();
     neurons.resize(n);
@@ -12,8 +62,8 @@ void Network::resize(const size_t &n, double inhib) {
 void Network::set_default_params(const std::map<std::string, size_t> &types,
                                  const size_t start) {
     size_t k(0), ssize(size()-start), kmax(0);
-    std::vector<double> noise(ssize);
-    _RNG->uniform_double(noise);
+    std::vector<double> noise(ssize); 
+   _RNG->uniform_double(noise);
     for (auto I : types) 
         if (Neuron::type_exists(I.first)) 
             for (kmax+=I.second; k<kmax && k<ssize; k++) 
